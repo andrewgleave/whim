@@ -90,4 +90,5 @@ class Event(BaseModel):
 #Signals
 @receiver(models.signals.pre_save, sender=Event)
 def create_user_profile(sender, instance=None, **kwargs):
-    instance.slug = Event.objects.create_slug(instance.name)
+    if not instance.slug:
+        instance.slug = Event.objects.create_slug(instance.name)
