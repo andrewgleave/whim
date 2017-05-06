@@ -46,17 +46,23 @@ class EventManager(models.Manager):
             slug = '{}_{:d}'.format(slug, count)
         return slug
 
+    def pending(self):
+        return self.filter(status=Event.STATUS_PENDING)
+
+    def published(self):
+        return self.filter(status=Event.STATUS_PUBLISHED)
+
     def forthcoming(self):
         tomorrow = datetime.now().date() + timedelta(1)
         tomorrow_start = datetime.combine(tomorrow, time())
-        return self.filter(start_datetime__gte=tomorrow_start)
+        return self.published().filter(start_datetime__gte=tomorrow_start)
 
     def today(self):
         today = datetime.now().date()
         tomorrow = today + timedelta(1)
         today_start = datetime.combine(today, time())
         today_end = datetime.combine(tomorrow, time())
-        return self.filter(
+        return self.published().filter(
             start_datetime__lte=today_end, end_datetime__gte=today_start)
 
 
@@ -64,6 +70,15 @@ class Event(BaseModel):
     '''
     Event model
     '''
+
+    STATUS_PENDING = 0
+    STATUS_PUBLISHED = 1
+    STATUS_REMOVED = 2
+    STATUS_NEEDS_REVIEW = 3
+
+    STATUS_CHOICES = ((STATUS_PENDING, 'Pending'), (
+        STATUS_PUBLISHED, 'Published'), (STATUS_REMOVED, 'Removed'),
+                      (STATUS_NEEDS_REVIEW, 'Needs Review'), )
 
     source = models.ForeignKey(Source, related_name="events")
     name = models.CharField(blank=False, max_length=75)
@@ -73,6 +88,8 @@ class Event(BaseModel):
     end_datetime = models.DateTimeField(blank=True, null=True)
     link = models.URLField(blank=True)
     tags = ArrayField(models.CharField(max_length=50), blank=True)
+    status = models.PositiveIntegerField(
+        choices=STATUS_CHOICES, default=STATUS_PENDING)
 
     objects = EventManager()
 
@@ -90,5 +107,6 @@ class Event(BaseModel):
 #Signals
 @receiver(models.signals.pre_save, sender=Event)
 def create_user_profile(sender, instance=None, **kwargs):
-    if not instance.slug:
+    if not instance.id:
         instance.slug = Event.objects.create_slug(instance.name)
+        instance.status = Event.STATUS_PENDING
