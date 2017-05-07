@@ -143,7 +143,7 @@ class Event(BaseModel):
 
 #Signals
 @receiver(models.signals.pre_save, sender=Event)
-def create_user_profile(sender, instance=None, **kwargs):
+def init_event(sender, instance=None, **kwargs):
     if not instance.id:
         instance.slug = Event.objects.create_slug(instance.name)
-        instance.status = Event.STATUS_PENDING
+        instance.status = Event.STATUS_PENDING  # default to pending
