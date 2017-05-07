@@ -33,6 +33,31 @@ class Source(BaseModel):
         return '{} - {}'.format(self.name, self.scraper_name)
 
 
+class CategoryManager(models.Manager):
+    '''
+    Manager methods for Category model
+    '''
+
+    def get_or_create_from_name(self, name):
+        return self.get_or_create(name=name.lower())
+
+
+class Category(BaseModel):
+    '''
+    Category model
+    '''
+
+    name = models.CharField(blank=False, max_length=75)
+
+    objects = CategoryManager()
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+    def __str__(self):
+        return self.name
+
+
 class EventManager(models.Manager):
     '''
     Manager methods for Event model
@@ -52,6 +77,10 @@ class EventManager(models.Manager):
     def published(self):
         return self.filter(status=Event.STATUS_PUBLISHED)
 
+    def pending_or_published(self):
+        return self.filter(status__in=(Event.STATUS_PENDING,
+                                       Event.STATUS_PUBLISHED, ))
+
     def forthcoming(self):
         tomorrow = datetime.now().date() + timedelta(1)
         tomorrow_start = datetime.combine(tomorrow, time())
@@ -64,6 +93,10 @@ class EventManager(models.Manager):
         today_end = datetime.combine(tomorrow, time())
         return self.published().filter(
             start_datetime__lte=today_end, end_datetime__gte=today_start)
+
+    def exists_for_source_name(self, source, name):
+        return self.pending_or_published().exists(
+            source=source, name__iexact=name)
 
 
 class Event(BaseModel):
@@ -81,6 +114,7 @@ class Event(BaseModel):
                       (STATUS_NEEDS_REVIEW, 'Needs Review'), )
 
     source = models.ForeignKey(Source, related_name="events")
+    category = models.ForeignKey(Category, related_name="events")
     name = models.CharField(blank=False, max_length=75)
     slug = models.SlugField(max_length=75)
     description = models.TextField(blank=False)
@@ -97,8 +131,9 @@ class Event(BaseModel):
         ordering = ['-start_datetime']
 
     def __str__(self):
-        return '{} - {}'.format(self.name,
-                                self.start_datetime.strftime("%d/%m/%y %H:%M"))
+        return '{} ({}) - {}'.format(
+            self.name, self.category,
+            self.start_datetime.strftime("%d/%m/%y %H:%M"))
 
     def get_absolute_url(self):
         return reverse('public_event_detail', args=[self.slug])
