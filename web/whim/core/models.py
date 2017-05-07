@@ -1,10 +1,12 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta, timezone
 
 from django.db import models
 from django.dispatch import receiver
 from django.contrib.postgres.fields import ArrayField
 from django.utils.text import slugify
 from django.urls import reverse
+
+from whim.core.time import zero_time_with_timezone
 
 
 class BaseModel(models.Model):
@@ -82,15 +84,15 @@ class EventManager(models.Manager):
                                        Event.STATUS_PUBLISHED, ))
 
     def forthcoming(self):
-        tomorrow = datetime.now().date() + timedelta(1)
-        tomorrow_start = datetime.combine(tomorrow, time())
+        tomorrow = datetime.now(timezone.utc).date() + timedelta(days=1)
+        tomorrow_start = zero_time_with_timezone(tomorrow)
         return self.published().filter(start_datetime__gte=tomorrow_start)
 
     def today(self):
-        today = datetime.now().date()
-        tomorrow = today + timedelta(1)
-        today_start = datetime.combine(today, time())
-        today_end = datetime.combine(tomorrow, time())
+        today = datetime.now(timezone.utc).date()
+        tomorrow = today + timedelta(days=1)
+        today_start = zero_time_with_timezone(today)
+        today_end = zero_time_with_timezone(tomorrow)
         return self.published().filter(
             start_datetime__lte=today_end, end_datetime__gte=today_start)
 
