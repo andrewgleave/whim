@@ -1,9 +1,16 @@
 appdirs==1.4.3
 beautifulsoup4==4.6.0
+dateparser==0.6.0
 Django==1.11
+future==0.16.0
 packaging==16.8
+parsedatetime==2.3
 psycopg2==2.7.1
 pyparsing==2.2.0
+python-dateutil==2.6.0
 pytz==2017.2
+regex==2017.4.29
 requests==2.13.0
+ruamel.yaml==0.14.11
 six==1.10.0
+tzlocal==1.4
