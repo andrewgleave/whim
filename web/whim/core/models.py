@@ -120,7 +120,7 @@ class Event(BaseModel):
     name = models.CharField(blank=False, max_length=75)
     slug = models.SlugField(max_length=75)
     description = models.TextField(blank=False)
-    start_datetime = models.DateTimeField(blank=False)
+    start_datetime = models.DateTimeField(blank=True, null=True)
     end_datetime = models.DateTimeField(blank=True, null=True)
     link = models.URLField(blank=True)
     tags = ArrayField(models.CharField(max_length=50), blank=True)
@@ -146,4 +146,3 @@ class Event(BaseModel):
 def init_event(sender, instance=None, **kwargs):
     if not instance.id:
         instance.slug = Event.objects.create_slug(instance.name)
-        instance.status = Event.STATUS_PENDING  # default to pending
