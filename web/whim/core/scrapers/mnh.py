@@ -54,17 +54,14 @@ class MNHScraper(BaseScraper):
                             if start_date is not None:
                                 tmp["start_date"] = zero_time_with_timezone(
                                     start_date)
-
                         if len(split) > 1:
                             # assume last in list is probably a date
                             end_date = attempt_parse_date(split[-1])
                             if end_date is not None:
                                 tmp["end_date"] = zero_time_with_timezone(
                                     end_date)
-
                     except:
                         pass
-
                     # if we have missing dates, mark for review
                     if not tmp["start_date"] or not tmp["end_date"]:
                         tmp["status"] = Event.STATUS_NEEDS_REVIEW
