@@ -3,7 +3,8 @@ from whim.core.models import Event
 
 
 def index(request):
-    return render(request, 'index.html', {'events': Event.objects.today()})
+    return render(request, 'index.html',
+                  {'events': Event.objects.forthcoming()})
 
 
 def event_detail(request, event_slug):

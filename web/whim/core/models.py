@@ -77,7 +77,8 @@ class EventManager(models.Manager):
         return self.filter(status=Event.STATUS_PENDING)
 
     def published(self):
-        return self.filter(status=Event.STATUS_PUBLISHED)
+        return self.filter(
+            status=Event.STATUS_PUBLISHED, start_datetime__isnull=False)
 
     def pending_or_published(self):
         return self.filter(status__in=(Event.STATUS_PENDING,
